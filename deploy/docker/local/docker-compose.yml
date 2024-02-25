@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  html2md.mattermost.server:
+    container_name: html2md.mattermost.server
+    image: mattermost/mattermost-preview
+    ports:
+      - "8065:8065"
+    volumes:
+      - html2md.mattermost.server.config:/mattermost/config:rw
+      - html2md.mattermost.server.data:/mattermost/data:rw
+      - html2md.mattermost.server.logs:/mattermost/logs:rw
+      - html2md.mattermost.server.plugins:/mattermost/plugins:rw
+      - html2md.mattermost.server.client-plugins:/mattermost/client/plugins:rw
+    restart: unless-stopped
+volumes:
+  html2md.mattermost.db:
+  html2md.mattermost.server.config:
+  html2md.mattermost.server.data:
+  html2md.mattermost.server.logs:
+  html2md.mattermost.server.plugins:
+  html2md.mattermost.server.client-plugins:

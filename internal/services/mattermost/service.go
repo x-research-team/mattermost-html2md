@@ -6,24 +6,23 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/x-research-team/mattermost-html2md/internal/config"
-	"github.com/x-research-team/mattermost-html2md/pkg/models/request"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
-	"github.com/go-resty/resty/v2"
 )
 
 type Service interface {
-	Send(ctx context.Context, text string) error
+	Send(ctx context.Context, text, channel string) error
 }
 
 type service struct {
 	cfg       *config.Config
 	converter *md.Converter
-	client    *resty.Client
+	client    *model.Client4
 }
 
-func New(cfg *config.Config, converter *md.Converter, client *resty.Client) Service {
+func New(cfg *config.Config, converter *md.Converter, client *model.Client4) Service {
 	return &service{
 		cfg:       cfg,
 		converter: converter,
@@ -31,28 +30,23 @@ func New(cfg *config.Config, converter *md.Converter, client *resty.Client) Serv
 	}
 }
 
-func (s service) Send(ctx context.Context, text string) error {
-	text, err := s.converter.ConvertString(text)
+func (s service) Send(ctx context.Context, html, channel string) error {
+	result, err := s.converter.ConvertString(html)
 	if err != nil {
 		return fmt.Errorf("convert string: %w", err)
 	}
 
-	resp, err := s.client.R().
-		EnableTrace().
-		SetDebug(s.cfg.Mattermost.Debug).
-		SetBody(request.Webhook{
-			Text:     text,
-			Username: s.cfg.Mattermost.User,
-			Channel:  s.cfg.Mattermost.Channel,
-		}).
-		Post(s.cfg.Mattermost.Webhook)
+	_, resp, err := s.client.CreatePost(&model.Post{
+		ChannelId: channel,
+		Message:   result,
+	})
 
 	if err != nil {
-		return fmt.Errorf("send: %w", err)
+		return fmt.Errorf("create post: %w", err)
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("send: %w", errors.New(resp.String()))
+	if resp.StatusCode != http.StatusCreated {
+		return errors.New("create post: " + fmt.Sprintf("status code: %d", resp.StatusCode))
 	}
 
 	return nil

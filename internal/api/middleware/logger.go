@@ -39,6 +39,7 @@ func Logger(log *zerolog.Logger) gin.HandlerFunc {
 				Int("status", c.Writer.Status()).
 				Dur("latency", time.Since(start)).
 				Msg(string(response))
+				return
 		}
 
 		log.Info().

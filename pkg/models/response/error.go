@@ -1,11 +1,11 @@
 package response
 
-type E struct {
+type Err struct {
 	Message string `json:"message" example:"Internal Server Error"`
 }
 
-func Error(err error) *E {
-	return &E{
+func Error(err error) *Err {
+	return &Err{
 		Message: err.Error(),
 	}
 }

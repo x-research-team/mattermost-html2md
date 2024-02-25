@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/x-research-team/mattermost-html2md/internal/api"
 	"github.com/x-research-team/mattermost-html2md/internal/config"
 	"github.com/x-research-team/mattermost-html2md/internal/flags"
@@ -19,7 +20,6 @@ import (
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/JohannesKaufmann/html-to-markdown/plugin"
 	rest "github.com/go-micro/plugins/v4/server/http"
-	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog"
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
@@ -44,11 +44,8 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 
 	converter := md.NewConverter("", true, nil)
 	converter.Use(plugin.GitHubFlavored())
-	client := resty.NewWithClient(&http.Client{
-		Timeout: cfg.Mattermost.Timeout,
-	})
-
-	log.InitHooks(client)
+	client := model.NewAPIv4Client(cfg.Mattermost.URL)
+	client.SetToken(cfg.Mattermost.Token)
 
 	service := mattermost.New(cfg, converter, client)
 

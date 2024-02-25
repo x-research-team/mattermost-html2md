@@ -25,7 +25,7 @@ type api struct {
 }
 
 type MettermostService interface {
-	Send(ctx context.Context, text string) error
+	Send(ctx context.Context, text, channel string) error
 }
 
 type Router interface {
@@ -60,7 +60,7 @@ func New(cfg *config.Config, logger *zerolog.Logger, server *http.Server, servic
 }
 
 func (a *api) Router() *gin.Engine {
-	a.POST("/send", router.New(a.Send,
+	a.POST("/api/v1/webhook", router.New(a.Webhook,
 		router.Summary("Send HTML to Markdown"),
 		router.Description("Send HTML to Markdown"),
 		router.ContentType("application/json", router.ContentTypeRequest),
@@ -72,11 +72,11 @@ func (a *api) Router() *gin.Engine {
 			},
 			"401": router.ResponseItem{
 				Description: "Unauthorized",
-				Model:       response.E{},
+				Model:       response.Err{},
 			},
 			"500": router.ResponseItem{
 				Description: "Internal Server Error",
-				Model:       response.E{},
+				Model:       response.Err{},
 			},
 		}),
 		router.Security(&security.ApiKey{Name: "X-API-KEY"}),

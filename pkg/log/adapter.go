@@ -5,32 +5,32 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-type Adapter struct {
+type MicroAdapter struct {
 	log zerolog.Logger
 }
 
-func NewAdapter(l zerolog.Logger) *Adapter {
-	return &Adapter{
+func NewMicroAdapter(l zerolog.Logger) *MicroAdapter {
+	return &MicroAdapter{
 		log: l,
 	}
 }
 
-func (z *Adapter) Init(opts ...logger.Option) error {
+func (z *MicroAdapter) Init(opts ...logger.Option) error {
 	// Initialize your logger with options if necessary
 	return nil
 }
 
-func (z *Adapter) Options() logger.Options {
+func (z *MicroAdapter) Options() logger.Options {
 	// Add options to your logger
 	return logger.Options{}
 }
 
-func (z *Adapter) Fields(fields map[string]interface{}) logger.Logger {
+func (z *MicroAdapter) Fields(fields map[string]interface{}) logger.Logger {
 	z.log = z.log.With().Fields(fields).Logger()
 	return z
 }
 
-func (z *Adapter) Log(level logger.Level, args ...interface{}) {
+func (z *MicroAdapter) Log(level logger.Level, args ...interface{}) {
 	// Log messages at the specified level
 	switch level {
 	case logger.InfoLevel:
@@ -48,7 +48,7 @@ func (z *Adapter) Log(level logger.Level, args ...interface{}) {
 	}
 }
 
-func (z *Adapter) Logf(level logger.Level, format string, args ...interface{}) {
+func (z *MicroAdapter) Logf(level logger.Level, format string, args ...interface{}) {
 	// Log formatted messages at the specified level
 	switch level {
 	case logger.InfoLevel:
@@ -66,6 +66,26 @@ func (z *Adapter) Logf(level logger.Level, format string, args ...interface{}) {
 	}
 }
 
-func (z *Adapter) String() string {
+func (z *MicroAdapter) String() string {
 	return "zerolog"
+}
+
+type CronAdapter struct {
+	log zerolog.Logger
+}
+
+func (c *CronAdapter) Error(err error, msg string, keysAndValues ...interface {
+}) {
+	c.log.Error().Err(err).Msgf(msg, keysAndValues...)
+}
+
+func (c *CronAdapter) Info(msg string, keysAndValues ...interface {
+}) {
+	c.log.Info().Msgf(msg, keysAndValues...)
+}
+
+func NewCronAdapter(l zerolog.Logger) *CronAdapter {
+	return &CronAdapter{
+		log: l,
+	}
 }

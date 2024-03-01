@@ -67,9 +67,8 @@ func (s *service) SendWebhook(ctx context.Context, text string, channel string) 
 		EnableTrace().
 		SetDebug(s.cfg.Mattermost.Debug).
 		SetBody(models.Webhook{
-			Text:     text,
-			Username: s.cfg.Mattermost.User,
-			Channel:  channel,
+			Text:    text,
+			Channel: channel,
 		}).
 		Post(s.cfg.Mattermost.Webhook)
 

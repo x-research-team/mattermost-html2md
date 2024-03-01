@@ -31,9 +31,19 @@ type Config struct {
 		Timeout time.Duration `env:"MATTERMOST_TIMEOUT" envDefault:"10s"`
 		Debug   bool          `env:"MATTERMOST_DEBUG" envDefault:"false"`
 		Token   string        `env:"MATTERMOST_TOKEN" required:"true"`
-		User    string        `env:"MATTERMOST_USER" required:"true"`
 		Webhook string        `env:"MATTERMOST_WEBHOOK_URL" required:"true"`
 		Channel string        `env:"MATTERMOST_CHANNEL" required:"true"`
+	}
+
+	IMAP struct {
+		Host string `env:"IMAP_HOST" required:"true"`
+		Port int    `env:"IMAP_PORT" envDefault:"993"`
+		User string `env:"IMAP_USER" required:"true"`
+		Pass string `env:"IMAP_PASS" required:"true"`
+	}
+
+	Cron struct {
+		Interval string `env:"CRON_INTERVAL" envDefault:"* * * * *"`
 	}
 }
 

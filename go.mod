@@ -4,12 +4,14 @@ go 1.22.0
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.5.0
+	github.com/emersion/go-imap v1.2.1
 	github.com/getkin/kin-openapi v0.123.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-micro/plugins/v4/server/http v1.2.2
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/lindenlab/env v0.4.3
 	github.com/mattermost/mattermost-server/v6 v6.7.2
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.32.0
 	github.com/x-research-team/swagin v0.0.0-20240124075514-1ef1c0ebef3f
 	go-micro.dev/v4 v4.10.2
@@ -24,6 +26,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 // indirect
+	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43 // indirect
+	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.3 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -65,6 +69,7 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
+	github.com/emersion/go-message v0.18.0
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

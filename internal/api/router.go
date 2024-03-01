@@ -61,7 +61,7 @@ func New(cfg *config.Config, logger *zerolog.Logger, server *http.Server, servic
 }
 
 func (a *api) Router() *gin.Engine {
-	a.POST("/api/v1/webhook", router.New(a.Webhook,
+	a.POST("/api/v1/send", router.New(a.Send,
 		router.Summary("Send HTML to Markdown"),
 		router.Description("Send HTML to Markdown"),
 		router.ContentType("application/json", router.ContentTypeRequest),

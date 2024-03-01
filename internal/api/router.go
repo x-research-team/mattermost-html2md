@@ -25,7 +25,8 @@ type api struct {
 }
 
 type MettermostService interface {
-	Send(ctx context.Context, text, channel string) error
+	SendAPI(ctx context.Context, text, channel string) error
+	SendWebhook(ctx context.Context, text, channel string) error
 }
 
 type Router interface {

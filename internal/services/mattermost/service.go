@@ -13,7 +13,8 @@ import (
 )
 
 type Service interface {
-	Send(ctx context.Context, text, channel string) error
+	SendAPI(ctx context.Context, text, channel string) error
+	SendWebhook(ctx context.Context, text, channel string) error
 }
 
 type service struct {
@@ -30,7 +31,7 @@ func New(cfg *config.Config, converter *md.Converter, client *model.Client4) Ser
 	}
 }
 
-func (s service) Send(ctx context.Context, html, channel string) error {
+func (s service) SendAPI(ctx context.Context, html, channel string) error {
 	result, err := s.converter.ConvertString(html)
 	if err != nil {
 		return fmt.Errorf("convert string: %w", err)
@@ -49,5 +50,9 @@ func (s service) Send(ctx context.Context, html, channel string) error {
 		return errors.New("create post: " + fmt.Sprintf("status code: %d", resp.StatusCode))
 	}
 
+	return nil
+}
+
+func (s *service) SendWebhook(ctx context.Context, text string, channel string) error {
 	return nil
 }

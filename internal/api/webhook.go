@@ -10,7 +10,7 @@ import (
 )
 
 func (a *api) Webhook(c *gin.Context, req request.Webhook) {
-	err := a.service.Send(c.Request.Context(), req.Body.Text, req.Body.Channel)
+	err := a.service.SendAPI(c.Request.Context(), req.Body.Text, req.Body.Channel)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.Error(err))

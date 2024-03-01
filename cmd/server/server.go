@@ -21,7 +21,6 @@ import (
 	"github.com/JohannesKaufmann/html-to-markdown/plugin"
 	rest "github.com/go-micro/plugins/v4/server/http"
 	"github.com/rs/zerolog"
-	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
@@ -74,12 +73,12 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 		micro.Registry(registry.NewRegistry()),
 		micro.RegisterTTL(cfg.Heartbeat.TTL),
 		micro.RegisterInterval(cfg.Heartbeat.Interval),
-		micro.Flags(slice.Merge[cli.Flag](flags.Test)...),
+		micro.Flags(slice.Merge(flags.Test)...),
 	)
 
 	svc.Init()
 
-	group.Go(svc.Run)
+	group.Go(start(ctx, l, svc))
 	group.Go(shutdown(ctx, l, svc))
 
 	if err := group.Wait(); err != nil {
@@ -89,7 +88,14 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 	return nil
 }
 
-func shutdown(ctx context.Context, l zerolog.Logger, svc micro.Service) func() error {
+func start(_ context.Context, l zerolog.Logger, svc micro.Service) func() error {
+	return func() error {
+		l.Info().Msg("starting")
+		return svc.Run()
+	}
+}
+
+func shutdown(ctx context.Context, l zerolog.Logger, _ micro.Service) func() error {
 	return func() error {
 		<-ctx.Done()
 

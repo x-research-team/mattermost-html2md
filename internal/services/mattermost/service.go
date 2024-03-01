@@ -31,7 +31,7 @@ func New(cfg *config.Config, converter *md.Converter, api *model.Client4, client
 		cfg:       cfg,
 		converter: converter,
 		api:       api,
-		client:    client,
+		client:    client.SetDebug(cfg.Mattermost.Debug),
 	}
 }
 

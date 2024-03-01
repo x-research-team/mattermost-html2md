@@ -44,13 +44,12 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 
 	converter := md.NewConverter("", true, nil)
 	converter.Use(plugin.GitHubFlavored())
-	mmclient := model.NewAPIv4Client(cfg.Mattermost.URL)
-	mmclient.SetToken(cfg.Mattermost.Token)
-	httpclient := resty.NewWithClient(&http.Client{
-		Timeout: cfg.Mattermost.Timeout,
-	})
+	client := model.NewAPIv4Client(cfg.Mattermost.URL)
+	client.SetToken(cfg.Mattermost.Token)
 
-	service := mattermost.New(cfg, converter, mmclient, httpclient)
+	service := mattermost.New(cfg, converter, client, resty.NewWithClient(&http.Client{
+		Timeout: cfg.Mattermost.Timeout,
+	}))
 
 	srv := rest.NewServer(
 		server.Address(net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port))),

@@ -32,7 +32,8 @@ type Config struct {
 		Debug   bool          `env:"MATTERMOST_DEBUG" envDefault:"false"`
 		Token   string        `env:"MATTERMOST_TOKEN" required:"true"`
 		User    string        `env:"MATTERMOST_USER" required:"true"`
-		Webhook string        `env:"MATTERMOST_WEBHOOK" required:"true"`
+		Webhook string        `env:"MATTERMOST_WEBHOOK_URL" required:"true"`
+		Channel string        `env:"MATTERMOST_CHANNEL" required:"true"`
 	}
 }
 

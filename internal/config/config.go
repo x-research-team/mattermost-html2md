@@ -31,6 +31,8 @@ type Config struct {
 		Timeout time.Duration `env:"MATTERMOST_TIMEOUT" envDefault:"10s"`
 		Debug   bool          `env:"MATTERMOST_DEBUG" envDefault:"false"`
 		Token   string        `env:"MATTERMOST_TOKEN" required:"true"`
+		User    string        `env:"MATTERMOST_USER" required:"true"`
+		Webhook string        `env:"MATTERMOST_WEBHOOK" required:"true"`
 	}
 }
 

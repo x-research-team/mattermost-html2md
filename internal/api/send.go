@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (a *api) Webhook(c *gin.Context, req request.Webhook) {
-	err := a.service.SendWebhook(c.Request.Context(), req.Body.Text, req.Body.Channel)
+func (a *api) Send(c *gin.Context, req request.Webhook) {
+	err := a.service.SendAPI(c.Request.Context(), req.Body.Text, req.Body.Channel)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.Error(err))

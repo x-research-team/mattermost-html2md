@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strconv"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/x-research-team/mattermost-html2md/internal/api"
 	"github.com/x-research-team/mattermost-html2md/internal/config"
@@ -43,10 +44,13 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 
 	converter := md.NewConverter("", true, nil)
 	converter.Use(plugin.GitHubFlavored())
-	client := model.NewAPIv4Client(cfg.Mattermost.URL)
-	client.SetToken(cfg.Mattermost.Token)
+	mmclient := model.NewAPIv4Client(cfg.Mattermost.URL)
+	mmclient.SetToken(cfg.Mattermost.Token)
+	httpclient := resty.NewWithClient(&http.Client{
+		Timeout: cfg.Mattermost.Timeout,
+	})
 
-	service := mattermost.New(cfg, converter, client)
+	service := mattermost.New(cfg, converter, mmclient, httpclient)
 
 	srv := rest.NewServer(
 		server.Address(net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port))),

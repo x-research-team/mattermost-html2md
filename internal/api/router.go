@@ -62,8 +62,30 @@ func New(cfg *config.Config, logger *zerolog.Logger, server *http.Server, servic
 
 func (a *api) Router() *gin.Engine {
 	a.POST("/api/v1/send", router.New(a.Send,
-		router.Summary("Send HTML to Markdown"),
-		router.Description("Send HTML to Markdown"),
+		router.Summary("Send HTML to Markdown using API"),
+		router.Description("Send HTML to Markdown using API"),
+		router.ContentType("application/json", router.ContentTypeRequest),
+		router.ContentType("application/json", router.ContentTypeResponse),
+		router.Responses(router.Response{
+			"204": router.ResponseItem{
+				Description: "OK",
+				Model:       response.Empty{},
+			},
+			"401": router.ResponseItem{
+				Description: "Unauthorized",
+				Model:       response.Err{},
+			},
+			"500": router.ResponseItem{
+				Description: "Internal Server Error",
+				Model:       response.Err{},
+			},
+		}),
+		router.Security(&security.ApiKey{Name: "X-API-KEY"}),
+	))
+
+	a.POST("/api/v1/webhook", router.New(a.Webhook,
+		router.Summary("Send HTML to Markdown using webhook"),
+		router.Description("Send HTML to Markdown using webhook"),
 		router.ContentType("application/json", router.ContentTypeRequest),
 		router.ContentType("application/json", router.ContentTypeResponse),
 		router.Responses(router.Response{

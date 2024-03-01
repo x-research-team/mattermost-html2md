@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/x-research-team/mattermost-html2md/internal/config"
+	"github.com/x-research-team/mattermost-html2md/pkg/models"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
 )
@@ -20,13 +22,15 @@ type Service interface {
 type service struct {
 	cfg       *config.Config
 	converter *md.Converter
-	client    *model.Client4
+	api       *model.Client4
+	client    *resty.Client
 }
 
-func New(cfg *config.Config, converter *md.Converter, client *model.Client4) Service {
+func New(cfg *config.Config, converter *md.Converter, api *model.Client4, client *resty.Client) Service {
 	return &service{
 		cfg:       cfg,
 		converter: converter,
+		api:       api,
 		client:    client,
 	}
 }
@@ -37,7 +41,7 @@ func (s service) SendAPI(ctx context.Context, html, channel string) error {
 		return fmt.Errorf("convert string: %w", err)
 	}
 
-	_, resp, err := s.client.CreatePost(&model.Post{
+	_, resp, err := s.api.CreatePost(&model.Post{
 		ChannelId: channel,
 		Message:   result,
 	})
@@ -54,5 +58,28 @@ func (s service) SendAPI(ctx context.Context, html, channel string) error {
 }
 
 func (s *service) SendWebhook(ctx context.Context, text string, channel string) error {
+	text, err := s.converter.ConvertString(text)
+	if err != nil {
+		return fmt.Errorf("convert string: %w", err)
+	}
+
+	resp, err := s.client.R().
+		EnableTrace().
+		SetDebug(s.cfg.Mattermost.Debug).
+		SetBody(models.Webhook{
+			Text:     text,
+			Username: s.cfg.Mattermost.User,
+			Channel:  channel,
+		}).
+		Post(s.cfg.Mattermost.Webhook)
+
+	if err != nil {
+		return fmt.Errorf("send: %w", err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("send: %w", errors.New(resp.String()))
+	}
+
 	return nil
 }

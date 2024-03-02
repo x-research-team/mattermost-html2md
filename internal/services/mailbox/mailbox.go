@@ -18,6 +18,8 @@ import (
 	"github.com/x-research-team/mattermost-html2md/internal/config"
 )
 
+var tags = []string{"br", "img"}
+
 var encodings = map[string]*charmap.Charmap{
 	"windows-1251": charmap.Windows1251,
 	"windows-1252": charmap.Windows1252,
@@ -123,8 +125,9 @@ func (m *mailbox) Handle(ctx context.Context, send func(context.Context, string,
 								return fmt.Errorf("parse html: %w", err)
 							}
 
-							removeBr(doc)
-							removeImages(doc)
+							for _, tag := range tags {
+								removeTag(tag, doc)
+							}
 
 							var buf bytes.Buffer
 							if err := html.Render(&buf, doc); err != nil {
@@ -150,10 +153,6 @@ func (m *mailbox) Handle(ctx context.Context, send func(context.Context, string,
 								}
 							}
 
-							utf8Str = strings.ReplaceAll(utf8Str, "|", "")
-							utf8Str = strings.Replace(utf8Str, "---", "", -1)
-							utf8Str = strings.ReplaceAll(utf8Str, "<br>", "")
-							utf8Str = strings.ReplaceAll(utf8Str, "<br/>", "")
 							utf8Str = strings.ReplaceAll(utf8Str, "б═", " ")
 							utf8Str = strings.TrimSpace(utf8Str)
 
@@ -183,26 +182,14 @@ func (m *mailbox) Handle(ctx context.Context, send func(context.Context, string,
 	return nil
 }
 
-func removeBr(n *html.Node) {
-	if n.Type == html.ElementNode && n.Data == "br" {
+func removeTag(tag string, n *html.Node) {
+	if n.Type == html.ElementNode && n.Data == tag {
 		parent := n.Parent
 		if parent != nil {
 			parent.RemoveChild(n)
 		}
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		removeBr(c)
-	}
-}
-
-func removeImages(n *html.Node) {
-	if n.Type == html.ElementNode && n.Data == "img" {
-		parent := n.Parent
-		if parent != nil {
-			parent.RemoveChild(n)
-		}
-	}
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		removeImages(c)
+		removeTag(tag, c)
 	}
 }

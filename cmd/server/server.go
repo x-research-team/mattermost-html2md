@@ -70,7 +70,7 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 			l.Err(err).Msg("login")
 		}
 
-		mail := mailbox.New(cfg, c)
+		mail := mailbox.New(cfg, c, &l)
 		if err := mail.Handle(ctx, service.SendWebhook); err != nil {
 			l.Error().Err(err).Msg("handle")
 		}
@@ -115,7 +115,23 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 	group.Go(start(ctx, l, svc))
 	group.Go(shutdown(ctx, l))
 	group.Go(func() error {
-		scheduler.Start()
+		c, err := client.DialTLS(net.JoinHostPort(cfg.IMAP.Host, strconv.Itoa(cfg.IMAP.Port)), nil)
+		if err != nil {
+			l.Error().Err(err).Msg("dial")
+		}
+
+		if err := c.Login(cfg.IMAP.User, cfg.IMAP.Pass); err != nil {
+			l.Err(err).Msg("login")
+		}
+
+		mail := mailbox.New(cfg, c, &l)
+		if err := mail.Handle(ctx, service.SendWebhook); err != nil {
+			l.Error().Err(err).Msg("handle")
+		}
+
+		if err := c.Logout(); err != nil {
+			l.Error().Err(err).Msg("logout")
+		}
 		return nil
 	})
 

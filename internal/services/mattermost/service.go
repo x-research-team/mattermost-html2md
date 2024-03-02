@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
-	"github.com/go-resty/resty/v2"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/x-research-team/mattermost-html2md/internal/config"
-	"github.com/x-research-team/mattermost-html2md/pkg/models"
+	"strings"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/go-resty/resty/v2"
+	"github.com/mattermost/mattermost-server/v6/model"
+
+	"github.com/x-research-team/mattermost-html2md/internal/config"
+	"github.com/x-research-team/mattermost-html2md/pkg/models"
 )
 
 type Service interface {
@@ -62,6 +63,9 @@ func (s *service) SendWebhook(ctx context.Context, text string, channel string) 
 	if err != nil {
 		return fmt.Errorf("convert string: %w", err)
 	}
+
+	text = strings.ReplaceAll(text, "<br>", "")
+	text = strings.ReplaceAll(text, "<br/>", "")
 
 	resp, err := s.client.R().
 		EnableTrace().

@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-
   html2md.app:
     container_name: html2md.app
     image: golang:latest
@@ -14,7 +13,6 @@ services:
     ports:
       - "8080:8080"
     entrypoint: /app/scripts/entrypoint.sh
-
 networks:
   html2md.networks:
     external: true

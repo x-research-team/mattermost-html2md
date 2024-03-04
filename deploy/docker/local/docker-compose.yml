@@ -1,33 +1,20 @@
 version: '3.8'
 services:
-  html2md.mattermost.server:
-    container_name: html2md.mattermost.server
-    image: mattermost/mattermost-preview
-    ports:
-      - "8065:8065"
-    volumes:
-      - html2md.mattermost.server.config:/mattermost/config:rw
-      - html2md.mattermost.server.data:/mattermost/data:rw
-      - html2md.mattermost.server.logs:/mattermost/logs:rw
-      - html2md.mattermost.server.plugins:/mattermost/plugins:rw
-      - html2md.mattermost.server.client-plugins:/mattermost/client/plugins:rw
-    restart: always
+
   html2md.app:
     container_name: html2md.app
     image: golang:latest
     restart: always
     volumes:
-      - .:/app:rw
+      - ${PWD}:/app:rw
     working_dir: /app
-    command: make app
+    command: ls -acl
     env_file:
-      - ${CWD}/.env
+      - ${PWD}/.env
     ports:
       - "8080:8080"
     entrypoint: /app/scripts/entrypoint.sh
-volumes:
-  html2md.mattermost.server.config:
-  html2md.mattermost.server.data:
-  html2md.mattermost.server.logs:
-  html2md.mattermost.server.plugins:
-  html2md.mattermost.server.client-plugins:
+
+networks:
+  html2md.networks:
+    external: true

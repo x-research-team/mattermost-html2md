@@ -11,9 +11,21 @@ services:
       - html2md.mattermost.server.logs:/mattermost/logs:rw
       - html2md.mattermost.server.plugins:/mattermost/plugins:rw
       - html2md.mattermost.server.client-plugins:/mattermost/client/plugins:rw
-    restart: unless-stopped
+    restart: always
+  html2md.app:
+    container_name: html2md.app
+    image: golang:latest
+    restart: always
+    volumes:
+      - .:/app:rw
+    working_dir: /app
+    command: make app
+    env_file:
+      - ${CWD}/.env
+    ports:
+      - "8080:8080"
+    entrypoint: /app/scripts/entrypoint.sh
 volumes:
-  html2md.mattermost.db:
   html2md.mattermost.server.config:
   html2md.mattermost.server.data:
   html2md.mattermost.server.logs:

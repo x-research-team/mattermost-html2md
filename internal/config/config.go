@@ -27,10 +27,10 @@ type Config struct {
 	}
 
 	Mattermost struct {
-		URL     string        `env:"MATTERMOST_URL" required:"true"`
+		URL     string        `env:"MATTERMOST_URL"`
 		Timeout time.Duration `env:"MATTERMOST_TIMEOUT" envDefault:"10s"`
 		Debug   bool          `env:"MATTERMOST_DEBUG" envDefault:"false"`
-		Token   string        `env:"MATTERMOST_TOKEN" required:"true"`
+		Token   string        `env:"MATTERMOST_TOKEN"`
 		Webhook string        `env:"MATTERMOST_WEBHOOK_URL" required:"true"`
 		Channel string        `env:"MATTERMOST_CHANNEL" required:"true"`
 	}

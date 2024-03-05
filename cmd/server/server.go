@@ -63,7 +63,7 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 		cron.WithLogger(adapter),
 	)
 	if _, err = scheduler.AddFunc(cfg.Cron.Interval, func() {
-		c, err := client.DialTLS(net.JoinHostPort(cfg.IMAP.Host, strconv.Itoa(cfg.IMAP.Port)), nil)
+		c, err := client.Dial(net.JoinHostPort(cfg.IMAP.Host, strconv.Itoa(cfg.IMAP.Port)))
 		if err != nil {
 			l.Error().Err(err).Msg("dial")
 		}

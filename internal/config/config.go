@@ -32,7 +32,7 @@ type Config struct {
 		Debug   bool          `env:"MATTERMOST_DEBUG" envDefault:"false"`
 		Token   string        `env:"MATTERMOST_TOKEN"`
 		Webhook string        `env:"MATTERMOST_WEBHOOK_URL" required:"true"`
-		Channel string        `env:"MATTERMOST_CHANNEL" required:"true"`
+		Channel string        `env:"MATTERMOST_CHANNEL"`
 	}
 
 	IMAP struct {

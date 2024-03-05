@@ -38,10 +38,12 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 
 	group, ctx := errgroup.WithContext(ctx)
 
-	cfg, err := config.Load(&l, ".env")
+	cfg, err := config.Load(&l)
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
+
+	fmt.Printf("config: %+v\n", cfg)
 
 	logger.DefaultLogger = log.NewMicroAdapter(l)
 
@@ -83,7 +85,7 @@ func Run(ctx context.Context, l zerolog.Logger) error {
 	}
 
 	srv := rest.NewServer(
-		server.Address(net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port))),
+		server.Address("0.0.0.0:8080"),
 		server.Context(ctx),
 		server.Wait(nil),
 	)

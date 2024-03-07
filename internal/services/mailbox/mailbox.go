@@ -7,6 +7,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -77,106 +78,116 @@ func (m *mailbox) Handle(ctx context.Context, send func(context.Context, string,
 		}()
 
 		for msg := range messages {
-			for _, literal := range msg.Body {
-				entity, err := message.Read(literal)
-				if err != nil {
-					return fmt.Errorf("read message: %w", err)
-				}
-
-				ct := entity.Header.Get("Content-Type")
-				switch {
-				case strings.HasPrefix(ct, "text"):
-					buffer, err := io.ReadAll(entity.Body)
-					if err != nil {
-						return fmt.Errorf("read body: %w", err)
-					}
-
-					result := string(buffer)
-					if result == "" {
-						continue
-					}
-
-					if err := send(ctx, result, m.cfg.Mattermost.Channel); err != nil {
-						return fmt.Errorf("send: %w", err)
-					}
-				case strings.HasPrefix(ct, "multipart"):
-					multiPartReader := entity.MultipartReader()
-
-					for {
-						p, err := multiPartReader.NextPart()
-						if err == io.EOF {
-							break
-						}
-
-						kind, _, err := p.Header.ContentType()
-						if err != nil {
-							return fmt.Errorf("content type: %w", err)
-						}
-
-						switch kind {
-						case "text/html":
-							body, err := io.ReadAll(p.Body)
-							if err != nil {
-								return fmt.Errorf("read body: %w", err)
-							}
-
-							doc, err := html.Parse(strings.NewReader(strings.TrimSpace(string(body))))
-							if err != nil {
-								return fmt.Errorf("parse html: %w", err)
-							}
-
-							for _, tag := range tags {
-								removeTag(tag, doc)
-							}
-
-							var buf bytes.Buffer
-							if err := html.Render(&buf, doc); err != nil {
-								return fmt.Errorf("render html: %w", err)
-							}
-
-							var utf8Str string
-							match := regexp.MustCompile(`charset="([^"]+)`).FindStringSubmatch(p.Header.Get("Content-Type"))
-							if len(match) > 1 {
-								enc, ok := encodings[strings.ToLower(match[1])]
-
-								if ok {
-									decoder := enc.NewDecoder()
-									utf8Str, err = decoder.String(buf.String())
-									if err != nil {
-										return fmt.Errorf("convert string: %w", err)
-									}
-								} else {
-									if match[1] != "utf-8" {
-										m.logger.Info().Str("charset", match[1]).Msg("unknown charset")
-									}
-									utf8Str = buf.String()
-								}
-							}
-
-							utf8Str = strings.ReplaceAll(utf8Str, "б═", " ")
-							utf8Str = strings.TrimSpace(utf8Str)
-
-							m.logger.Debug().
-								Str("charset", match[1]).
-								Str("content-type", p.Header.Get("Content-Type")).
-								Str("body", utf8Str)
-
-							if err := send(ctx, utf8Str, m.cfg.Mattermost.Channel); err != nil {
-								return fmt.Errorf("send: %w", err)
-							}
-						default:
-							continue
-						}
-						break
-					}
-				}
-				break
+			if err = m.processMessage(ctx, send, msg); err != nil {
+				return fmt.Errorf("process message: %w", err)
 			}
 		}
 
 		if err := <-done; err != nil {
 			return fmt.Errorf("fetch: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (m *mailbox) processMessage(ctx context.Context, send func(context.Context, string, string) error, msg *imap.Message) error {
+	defer time.Sleep(time.Microsecond * 200)
+	for _, literal := range msg.Body {
+		entity, err := message.Read(literal)
+		if err != nil {
+			return fmt.Errorf("read message: %w", err)
+		}
+
+		ct := entity.Header.Get("Content-Type")
+		switch {
+		case strings.HasPrefix(ct, "text"):
+			buffer, err := io.ReadAll(entity.Body)
+			if err != nil {
+				return fmt.Errorf("read body: %w", err)
+			}
+
+			result := string(buffer)
+			if result == "" {
+				continue
+			}
+
+			if err := send(ctx, result, m.cfg.Mattermost.Channel); err != nil {
+				return fmt.Errorf("send: %w", err)
+			}
+		case strings.HasPrefix(ct, "multipart"):
+			multiPartReader := entity.MultipartReader()
+
+			for {
+				p, err := multiPartReader.NextPart()
+				if err == io.EOF {
+					break
+				}
+
+				kind, _, err := p.Header.ContentType()
+				if err != nil {
+					return fmt.Errorf("content type: %w", err)
+				}
+
+				switch kind {
+				case "text/html":
+					body, err := io.ReadAll(p.Body)
+					if err != nil {
+						return fmt.Errorf("read body: %w", err)
+					}
+
+					doc, err := html.Parse(strings.NewReader(strings.TrimSpace(string(body))))
+					if err != nil {
+						return fmt.Errorf("parse html: %w", err)
+					}
+
+					for _, tag := range tags {
+						removeTag(tag, doc)
+					}
+
+					var buf bytes.Buffer
+					if err := html.Render(&buf, doc); err != nil {
+						return fmt.Errorf("render html: %w", err)
+					}
+
+					var u8s string
+					match := regexp.MustCompile(`charset="([^"]+)`).FindStringSubmatch(p.Header.Get("Content-Type"))
+					encoding := strings.ToLower(match[1])
+					if len(match) > 1 {
+						enc, ok := encodings[strings.ToLower(match[1])]
+
+						if ok {
+							decoder := enc.NewDecoder()
+							u8s, err = decoder.String(buf.String())
+							if err != nil {
+								return fmt.Errorf("convert string: %w", err)
+							}
+						} else {
+							if encoding != "utf-8" {
+								m.logger.Info().Str("charset", encoding).Msg("unknown charset")
+							}
+							u8s = buf.String()
+						}
+					}
+
+					u8s = strings.ReplaceAll(u8s, "б═", " ")
+					u8s = strings.TrimSpace(u8s)
+
+					m.logger.Debug().
+						Str("charset", encoding).
+						Str("content-type", p.Header.Get("Content-Type")).
+						Str("body", u8s)
+
+					if err := send(ctx, u8s, m.cfg.Mattermost.Channel); err != nil {
+						return fmt.Errorf("send: %w", err)
+					}
+				default:
+					continue
+				}
+				break
+			}
+		}
+		break
 	}
 
 	return nil
